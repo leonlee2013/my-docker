@@ -1,0 +1,48 @@
+# Dockerfile.busybox
+# docker build -f ./Dockerfile.busybox  .
+# 般应该在命令行里使用 -f 来显式指定。但如果省略这个参数，docker build 就会在当前目录下找名字是 Dockerfile 的文件。所以，如果只有一个构建目标的话，文件直接叫“Dockerfile”是最省事的。
+ # 选择基础镜像
+#  FROM alpine:3.15 # 选择Alpine镜像
+#  FROM ubuntu:bionic # 选择Ubuntu镜像
+FROM busybox             
+ # 启动容器时默认运行的命令
+CMD echo "hello world"   
+
+#  docker inspect 07f
+# [ly@w2-vm-debian my-docker]$ docker run 07f
+# hello world
+
+# COPY ./a.txt /tmp/a.txt # 把构建上下文里的a.txt拷贝到镜像的/tmp目录
+# COPY /etc/hosts /tmp # 错误！不能使用构建上下文之外的文件
+
+# Dockerfile 里一条指令只能是一行，所以有的 RUN 指令会在每行的末尾使用续行符 \，命令之间也会用 && 来连接
+# RUN apt-get update \
+#     && apt-get install -y \
+#         build-essential \
+#         curl \
+#         make \
+#         unzip \
+#     && cd /tmp \
+#     && curl -fSL xxx.tar.gz -o xxx.tar.gz\
+#     && tar xzf xxx.tar.gz \
+#     && cd xxx \
+#     && ./config \
+#     && make \
+#     && make clean
+
+# 把这些 Shell 命令集中到一个脚本文件里，用 COPY 命令拷贝进去再用 RUN 来执行
+# COPY setup.sh  /tmp/                # 拷贝脚本到/tmp目录
+# RUN cd /tmp && chmod +x setup.sh \  # 添加执行权限
+#     && ./setup.sh && rm setup.sh    # 运行脚本然后再删除
+
+# 需要使用两个指令 ARG 和 ENV
+# ARG 创建的变量只在镜像构建过程中可见，容器运行时不可见，而 ENV 创建的变量不仅能够在构建镜像的过程中使用，在容器运行时也能够以环境变量的形式被应用程序使用
+# ARG IMAGE_BASE="node"
+# ARG IMAGE_TAG="alpine"
+# ENV PATH=$PATH:/tmp
+# ENV DEBUG=OFF
+
+
+# EXPOSE，它用来声明容器对外服务的端口号
+# EXPOSE 443           # 默认是tcp协议
+# EXPOSE 53/udp        # 可以指定udp协议
